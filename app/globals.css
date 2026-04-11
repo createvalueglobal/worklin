@@ -28,14 +28,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
+}
+
+body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
   margin: 0;
   padding: 0;
 }
 
 html {
   scroll-behavior: smooth;
+  background-color: #0a0a0f;
 }
 
 body {
@@ -53,16 +57,13 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
 }
-
 .glass-hover {
   transition: background 0.2s ease, border-color 0.2s ease;
 }
-
 .glass-hover:hover {
   background: var(--glass-hover);
   border-color: rgba(255, 255, 255, 0.14);
 }
-
 .glass-card {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
@@ -72,27 +73,122 @@ body {
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
 /* ── Gradient background ── */
 .gradient-bg {
   background: 
-    radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 20%, rgba(99,102,241,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(139,92,246,0.10) 0%, transparent 50%),
     var(--background);
+}
+
+/* ────────────────────────────────────────────────────────────
+   COMPATIBILIDAD TAILWIND v4
+   En v4 las clases bg-white/N y border-white/N requieren
+   definición explícita. Las añadimos aquí como @layer utilities.
+   ──────────────────────────────────────────────────────────── */
+@layer utilities {
+
+  /* Fondos blancos con opacidad */
+  .bg-white\/3  { background-color: rgba(255,255,255,0.03); }
+  .bg-white\/5  { background-color: rgba(255,255,255,0.05); }
+  .bg-white\/8  { background-color: rgba(255,255,255,0.08); }
+  .bg-white\/10 { background-color: rgba(255,255,255,0.10); }
+  .bg-white\/12 { background-color: rgba(255,255,255,0.12); }
+  .bg-white\/15 { background-color: rgba(255,255,255,0.15); }
+  .bg-white\/20 { background-color: rgba(255,255,255,0.20); }
+
+  /* Variantes hover */
+  .hover\:bg-white\/12:hover { background-color: rgba(255,255,255,0.12); }
+  .hover\:bg-white\/15:hover { background-color: rgba(255,255,255,0.15); }
+
+  /* Bordes blancos con opacidad */
+  .border-white\/8  { border-color: rgba(255,255,255,0.08); }
+  .border-white\/10 { border-color: rgba(255,255,255,0.10); }
+  .border-white\/15 { border-color: rgba(255,255,255,0.15); }
+  .border-white\/25 { border-color: rgba(255,255,255,0.25); }
+
+  /* Variantes hover de bordes */
+  .hover\:border-white\/15:hover { border-color: rgba(255,255,255,0.15); }
+  .hover\:border-white\/25:hover { border-color: rgba(255,255,255,0.25); }
+
+  /* Fondos negros con opacidad */
+  .bg-black\/20 { background-color: rgba(0,0,0,0.20); }
+
+  /* Fondos violet con opacidad */
+  .bg-violet-500\/8  { background-color: rgba(139,92,246,0.08); }
+  .bg-violet-500\/10 { background-color: rgba(139,92,246,0.10); }
+  .bg-violet-500\/15 { background-color: rgba(139,92,246,0.15); }
+  .bg-violet-500\/20 { background-color: rgba(139,92,246,0.20); }
+  .bg-violet-500\/25 { background-color: rgba(139,92,246,0.25); }
+  .bg-violet-600\/10 { background-color: rgba(124,58,237,0.10); }
+  .bg-violet-600\/20 { background-color: rgba(124,58,237,0.20); }
+  .bg-violet-600\/30 { background-color: rgba(124,58,237,0.30); }
+  .bg-violet-900\/40 { background-color: rgba(76,29,149,0.40); }
+  .bg-violet-950\/8  { background-color: rgba(46,16,101,0.08); }
+  .bg-violet-950\/10 { background-color: rgba(46,16,101,0.10); }
+
+  /* Fondos indigo con opacidad */
+  .bg-indigo-500\/15 { background-color: rgba(99,102,241,0.15); }
+  .bg-indigo-500\/20 { background-color: rgba(99,102,241,0.20); }
+  .bg-indigo-600\/10 { background-color: rgba(79,70,229,0.10); }
+  .bg-indigo-600\/25 { background-color: rgba(79,70,229,0.25); }
+  .bg-indigo-900\/30 { background-color: rgba(49,46,129,0.30); }
+  .bg-indigo-950\/15 { background-color: rgba(30,27,75,0.15); }
+
+  /* Fondos fuchsia con opacidad */
+  .bg-fuchsia-700\/20 { background-color: rgba(162,28,175,0.20); }
+  .bg-fuchsia-950\/8  { background-color: rgba(74,4,78,0.08); }
+
+  /* Bordes violet/indigo con opacidad */
+  .border-violet-400\/20 { border-color: rgba(167,139,250,0.20); }
+  .border-violet-400\/30 { border-color: rgba(167,139,250,0.30); }
+  .border-violet-500\/25 { border-color: rgba(139,92,246,0.25); }
+  .border-violet-500\/40 { border-color: rgba(139,92,246,0.40); }
+  .border-indigo-400\/30 { border-color: rgba(129,140,248,0.30); }
+
+  /* Variantes hover de bordes violet */
+  .hover\:border-violet-400\/30:hover { border-color: rgba(167,139,250,0.30); }
+  .hover\:border-violet-500\/30:hover { border-color: rgba(139,92,246,0.30); }
+
+  /* Sombras con opacidad */
+  .shadow-violet-500\/20 { --tw-shadow-color: rgba(139,92,246,0.20); }
+  .shadow-violet-500\/25 { --tw-shadow-color: rgba(139,92,246,0.25); }
+  .shadow-violet-500\/30 { --tw-shadow-color: rgba(139,92,246,0.30); }
+  .shadow-violet-500\/40 { --tw-shadow-color: rgba(139,92,246,0.40); }
+  .shadow-violet-500\/50 { --tw-shadow-color: rgba(139,92,246,0.50); }
+
+  /* Textos con opacidad */
+  .text-white\/25 { color: rgba(255,255,255,0.25); }
+  .text-white\/30 { color: rgba(255,255,255,0.30); }
+  .text-white\/35 { color: rgba(255,255,255,0.35); }
+  .text-white\/40 { color: rgba(255,255,255,0.40); }
+  .text-white\/45 { color: rgba(255,255,255,0.45); }
+  .text-white\/50 { color: rgba(255,255,255,0.50); }
+  .text-white\/55 { color: rgba(255,255,255,0.55); }
+  .text-white\/60 { color: rgba(255,255,255,0.60); }
+  .text-white\/65 { color: rgba(255,255,255,0.65); }
+  .text-white\/70 { color: rgba(255,255,255,0.70); }
+
+  /* Decoration */
+  .decoration-white-15 { text-decoration-color: rgba(255,255,255,0.15); }
+
+  /* Hover states adicionales */
+  .hover\:bg-violet-500\/8:hover  { background-color: rgba(139,92,246,0.08); }
+  .hover\:bg-violet-500\/25:hover { background-color: rgba(139,92,246,0.25); }
+  .hover\:bg-indigo-500\/25:hover { background-color: rgba(99,102,241,0.25); }
+
+  /* Clases semánticas para colores de fondo del tema */
+  .bg-theme-base    { background-color: #0a0a0f; }
+  .bg-theme-surface { background-color: #07070d; }
+  .bg-theme-overlay { background-color: #0d0d14; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
