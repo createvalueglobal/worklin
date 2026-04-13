@@ -26,8 +26,8 @@ const FOOTER_LINKS = {
     { label: "Cómo funciona", href: "#how-it-works" },
     { label: "Precios", href: "#pricing" },
     { label: "Sectores", href: "#sectors" },
-    { label: "Para profesionales", href: "//login?role=professional" },
-    { label: "Para empresas", href: "//login?role=company" },
+    { label: "Para profesionales", href: "/login?role=professional" },
+    { label: "Para empresas", href: "/login?role=company" },
   ],
   Legal: [
     { label: "Aviso legal", href: "/legal/aviso-legal" },
