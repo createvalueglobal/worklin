@@ -41,7 +41,7 @@ const TIERS: Tier[] = [
       { text: "Filtros avanzados", included: false },
     ],
     cta: "Empezar gratis",
-    ctaHref: "/register?role=company&plan=free",
+    ctaHref: "//login?role=company&plan=free",
   },
   {
     name: "Básico",
@@ -59,7 +59,7 @@ const TIERS: Tier[] = [
       { text: "Soporte prioritario", included: false },
     ],
     cta: "Elegir Básico",
-    ctaHref: "/register?role=company&plan=basic",
+    ctaHref: "//login?role=company&plan=basic",
   },
   {
     name: "Pro",
@@ -78,7 +78,7 @@ const TIERS: Tier[] = [
       { text: "Soporte prioritario", included: false },
     ],
     cta: "Elegir Pro",
-    ctaHref: "/register?role=company&plan=pro",
+    ctaHref: "//login?role=company&plan=pro",
   },
   {
     name: "Business",
@@ -96,7 +96,7 @@ const TIERS: Tier[] = [
       { text: "Soporte prioritario", included: true },
     ],
     cta: "Elegir Business",
-    ctaHref: "/register?role=company&plan=business",
+    ctaHref: "//login?role=company&plan=business",
   },
 ];
 

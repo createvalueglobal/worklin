@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 
 interface LoginPageProps {
-  searchParams: Promise<{ role?: string; error?: string }>
+  searchParams: Promise<{ role?: string; error?: string; plan?: string }>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -17,6 +17,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     ? params.role
     : null
   const error = params.error ?? null
+  const plan = params.plan ?? null
 
   return (
     <OnboardingLayout
@@ -29,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       }
       subtitle="Usa tu cuenta de Google para continuar"
     >
-      <LoginCard role={role} error={error} />
+      <LoginCard role={role} error={error} plan={plan} />
     </OnboardingLayout>
   )
 }

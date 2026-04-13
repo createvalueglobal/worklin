@@ -83,7 +83,7 @@ export function Navbar() {
             Entrar
           </Link>
           <Link
-            href="/register"
+            href="//login"
             className="text-sm font-semibold px-5 py-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white transition-all duration-200 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105"
           >
             Registrarse gratis
@@ -129,7 +129,7 @@ export function Navbar() {
                 Entrar
               </Link>
               <Link
-                href="/register"
+                href="//login"
                 className="text-center font-semibold px-5 py-3 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white"
               >
                 Registrarse gratis

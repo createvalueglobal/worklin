@@ -7,6 +7,7 @@ import { createBrowserClient } from '@supabase/ssr'
 interface LoginCardProps {
   role?: 'professional' | 'company' | null
   error?: string | null
+  plan?: string | null
 }
 
 const COPY = {
@@ -30,7 +31,7 @@ const COPY = {
   },
 }
 
-export default function LoginCard({ role, error }: LoginCardProps) {
+export default function LoginCard({ role, error, plan }: LoginCardProps) {
   const [loading, setLoading] = useState(false)
 
   const copy = role ? COPY[role] : COPY.default
@@ -43,6 +44,10 @@ export default function LoginCard({ role, error }: LoginCardProps) {
     if (role) {
       document.cookie = `pending_role=${role}; path=/; max-age=300; SameSite=Lax`
     }
+
+    if (plan) {
+      document.cookie = `pending_plan=${plan}; path=/; max-age=600; SameSite=Lax`
+    } 
 
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

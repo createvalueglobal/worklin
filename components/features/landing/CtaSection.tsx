@@ -37,7 +37,7 @@ export function CtaSection() {
             {/* Dual CTA */}
             <div className="flex flex-col sm:flex-row items-center gap-4 mt-2">
               <Link
-                href="/register?role=professional"
+                href="//login?role=professional"
                 className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-base shadow-xl shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
               >
                 Regístrate como profesional
@@ -46,7 +46,7 @@ export function CtaSection() {
                 </svg>
               </Link>
               <Link
-                href="/register?role=company"
+                href="//login?role=company"
                 className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/8 hover:bg-white/12 backdrop-blur-sm border border-white/15 hover:border-white/25 text-white font-bold text-base transition-all duration-300 hover:scale-105 hover:-translate-y-0.5"
               >
                 Publicar como empresa
