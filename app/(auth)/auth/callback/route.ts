@@ -5,23 +5,18 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const role = searchParams.get('role')
 
-  console.log('[auth/callback] START - code present:', !!code, '- role:', role)
+  // El rol viene en cookie porque Supabase descarta query params personalizados en redirectTo
+  const pendingRole = request.cookies.get('pending_role')?.value
+  const role = pendingRole === 'professional' || pendingRole === 'company'
+    ? pendingRole
+    : null
 
   if (!code) {
-    console.log('[auth/callback] No code, redirecting to error')
     return NextResponse.redirect(`${origin}/login?error=no_code`)
   }
 
   const cookieStore = await cookies()
-
-  // Log todas las cookies presentes para ver si el verifier está ahí
-  const allCookies = cookieStore.getAll()
-  console.log('[auth/callback] Cookies present:', allCookies.map(c => c.name).join(', '))
-
-  const hasVerifier = allCookies.some(c => c.name.includes('code-verifier'))
-  console.log('[auth/callback] Has PKCE verifier:', hasVerifier)
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,23 +35,18 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  console.log('[auth/callback] Attempting exchangeCodeForSession...')
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
   if (exchangeError) {
-    console.error('[auth/callback] Exchange error:', exchangeError.message, '| status:', exchangeError.status)
+    console.error('[auth/callback] Exchange error:', exchangeError.message)
     return NextResponse.redirect(`${origin}/login?error=exchange_failed`)
   }
 
-  console.log('[auth/callback] Exchange OK, getting user...')
   const { data: { user }, error: userError } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    console.error('[auth/callback] No user after exchange:', userError?.message)
     return NextResponse.redirect(`${origin}/login?error=no_user`)
   }
-
-  console.log('[auth/callback] User found:', user.id)
 
   const { data: publicUser, error: publicUserError } = await supabase
     .from('users')
@@ -65,37 +55,38 @@ export async function GET(request: NextRequest) {
     .single()
 
   if (publicUserError || !publicUser) {
-    console.error('[auth/callback] public.users error:', publicUserError?.message)
+    console.error('[auth/callback] public.users not found for:', user.id)
     return NextResponse.redirect(`${origin}/login?error=user_sync`)
   }
 
-  console.log('[auth/callback] publicUser:', publicUser.role, '- onboarding:', publicUser.onboarding_completed)
-
+  // Si el onboarding ya está completado, ir al dashboard
   if (publicUser.onboarding_completed) {
     const dashboard = publicUser.role === 'professional'
       ? '/professional/dashboard'
       : publicUser.role === 'company'
         ? '/company/dashboard'
         : '/admin/dashboard'
-    console.log('[auth/callback] Redirecting to dashboard:', dashboard)
     return NextResponse.redirect(`${origin}${dashboard}`)
   }
 
-  if (role && (role === 'professional' || role === 'company')) {
+  // Onboarding pendiente: si viene con rol en cookie, guardarlo y saltar el selector
+  if (role) {
     const { error: updateError } = await supabase
       .from('users')
       .update({ role })
       .eq('id', user.id)
 
     if (updateError) {
-      console.error('[auth/callback] Role update error:', updateError.message)
+      console.error('[auth/callback] Error updating role:', updateError.message)
       return NextResponse.redirect(`${origin}/onboarding/role`)
     }
 
-    console.log('[auth/callback] Role saved, redirecting to onboarding/', role)
-    return NextResponse.redirect(`${origin}/onboarding/${role}`)
+    // Limpiar la cookie de rol pendiente
+    const response = NextResponse.redirect(`${origin}/onboarding/${role}`)
+    response.cookies.set('pending_role', '', { maxAge: 0, path: '/' })
+    return response
   }
 
-  console.log('[auth/callback] No role, redirecting to role selector')
+  // Sin rol: mostrar selector
   return NextResponse.redirect(`${origin}/onboarding/role`)
 }

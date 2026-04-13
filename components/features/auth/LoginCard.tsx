@@ -37,19 +37,22 @@ export default function LoginCard({ role, error }: LoginCardProps) {
 
   const handleGoogleLogin = async () => {
     setLoading(true)
+
+    // Guardar el rol en cookie antes de salir a Google
+    // (los query params del redirectTo son descartados por Supabase OAuth)
+    if (role) {
+      document.cookie = `pending_role=${role}; path=/; max-age=300; SameSite=Lax`
+    }
+
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Construir la URL de callback con el rol como query param para preservarlo
-    const callbackUrl = new URL('/auth/callback', window.location.origin)
-    if (role) callbackUrl.searchParams.set('role', role)
-
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: callbackUrl.toString(),
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
