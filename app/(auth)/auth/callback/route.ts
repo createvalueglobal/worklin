@@ -5,13 +5,23 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const role = searchParams.get('role') // viene de ?role=professional|company en la landing
+  const role = searchParams.get('role')
+
+  console.log('[auth/callback] START - code present:', !!code, '- role:', role)
 
   if (!code) {
+    console.log('[auth/callback] No code, redirecting to error')
     return NextResponse.redirect(`${origin}/login?error=no_code`)
   }
 
   const cookieStore = await cookies()
+
+  // Log todas las cookies presentes para ver si el verifier está ahí
+  const allCookies = cookieStore.getAll()
+  console.log('[auth/callback] Cookies present:', allCookies.map(c => c.name).join(', '))
+
+  const hasVerifier = allCookies.some(c => c.name.includes('code-verifier'))
+  console.log('[auth/callback] Has PKCE verifier:', hasVerifier)
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,22 +40,24 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  // Intercambiar el code por una sesión activa
+  console.log('[auth/callback] Attempting exchangeCodeForSession...')
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
   if (exchangeError) {
-    console.error('[auth/callback] Error exchanging code:', exchangeError.message)
+    console.error('[auth/callback] Exchange error:', exchangeError.message, '| status:', exchangeError.status)
     return NextResponse.redirect(`${origin}/login?error=exchange_failed`)
   }
 
-  // Obtener el usuario recién autenticado
+  console.log('[auth/callback] Exchange OK, getting user...')
   const { data: { user }, error: userError } = await supabase.auth.getUser()
 
   if (userError || !user) {
+    console.error('[auth/callback] No user after exchange:', userError?.message)
     return NextResponse.redirect(`${origin}/login?error=no_user`)
   }
 
-  // Buscar el registro en public.users (creado por el trigger auth.users → public.users)
+  console.log('[auth/callback] User found:', user.id)
+
   const { data: publicUser, error: publicUserError } = await supabase
     .from('users')
     .select('id, role, onboarding_completed')
@@ -53,21 +65,22 @@ export async function GET(request: NextRequest) {
     .single()
 
   if (publicUserError || !publicUser) {
-    console.error('[auth/callback] public.users not found for:', user.id)
+    console.error('[auth/callback] public.users error:', publicUserError?.message)
     return NextResponse.redirect(`${origin}/login?error=user_sync`)
   }
 
-  // Si el onboarding ya está completado, ir al dashboard correspondiente
+  console.log('[auth/callback] publicUser:', publicUser.role, '- onboarding:', publicUser.onboarding_completed)
+
   if (publicUser.onboarding_completed) {
     const dashboard = publicUser.role === 'professional'
       ? '/professional/dashboard'
       : publicUser.role === 'company'
         ? '/company/dashboard'
         : '/admin/dashboard'
+    console.log('[auth/callback] Redirecting to dashboard:', dashboard)
     return NextResponse.redirect(`${origin}${dashboard}`)
   }
 
-  // Onboarding pendiente: si viene con ?role, guardarlo y saltar el selector
   if (role && (role === 'professional' || role === 'company')) {
     const { error: updateError } = await supabase
       .from('users')
@@ -75,13 +88,14 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
 
     if (updateError) {
-      console.error('[auth/callback] Error updating role:', updateError.message)
+      console.error('[auth/callback] Role update error:', updateError.message)
       return NextResponse.redirect(`${origin}/onboarding/role`)
     }
 
+    console.log('[auth/callback] Role saved, redirecting to onboarding/', role)
     return NextResponse.redirect(`${origin}/onboarding/${role}`)
   }
 
-  // Sin rol: mostrar selector
+  console.log('[auth/callback] No role, redirecting to role selector')
   return NextResponse.redirect(`${origin}/onboarding/role`)
 }
