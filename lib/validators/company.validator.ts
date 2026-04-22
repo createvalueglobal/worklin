@@ -29,6 +29,65 @@ export const companyStep2Schema = z.object({
 // Schema completo (para validación final en API)
 export const companyFullSchema = companyStep1Schema.merge(companyStep2Schema)
 
+// ------------------------------------------------------------
+// Favorites
+// ------------------------------------------------------------
+ 
+export const addFavoriteSchema = z.object({
+  professional_id: z.string().uuid({ message: 'ID de profesional inválido' }),
+})
+ 
+export const removeFavoriteSchema = z.object({
+  professional_id: z.string().uuid({ message: 'ID de profesional inválido' }),
+})
+
+// ------------------------------------------------------------
+// Unlock
+// ------------------------------------------------------------
+ 
+export const unlockProfileSchema = z.object({
+  professional_id: z.string().uuid({ message: 'ID de profesional inválido' }),
+})
+
+// ------------------------------------------------------------
+// Search
+// ------------------------------------------------------------
+ 
+export const searchParamsSchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 1))
+    .pipe(z.number().int().min(1)),
+  page_size: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 12))
+    .pipe(z.number().int().min(1).max(50)),
+  province_id: z.string().uuid().optional(),
+  main_profession: z.string().max(100).optional(),
+  // Filtros avanzados (se validan pero el servicio los ignora si el tier no los permite)
+  availability: z.enum(['immediate', 'in_days', 'not_available']).optional(),
+  work_mode: z.enum(['presential', 'hybrid', 'remote']).optional(),
+  salary_min: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : undefined))
+    .pipe(z.number().int().min(0).optional()),
+  salary_max: z
+    .string()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : undefined))
+    .pipe(z.number().int().min(0).optional()),
+  language: z.string().max(50).optional(),
+  skill: z.string().max(100).optional(),
+})
+
 export type CompanyStep1 = z.infer<typeof companyStep1Schema>
 export type CompanyStep2 = z.infer<typeof companyStep2Schema>
 export type CompanyFull = z.infer<typeof companyFullSchema>
+export type AddFavoriteInput = z.infer<typeof addFavoriteSchema>
+export type RemoveFavoriteInput = z.infer<typeof removeFavoriteSchema>
+export type UnlockProfileInput = z.infer<typeof unlockProfileSchema>
+export type SearchParamsInput = z.input<typeof searchParamsSchema>
+export type SearchParamsOutput = z.output<typeof searchParamsSchema>

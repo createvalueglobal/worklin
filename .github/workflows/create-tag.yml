@@ -1,0 +1,31 @@
+name: Create Tag from Package Version
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    # Evitamos que se cree un tag si el push no incluyó cambios en el código
+    if: github.event.base_ref == 'refs/heads/master' || github.event.created == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from package.json
+        id: package_version
+        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Verificar si el tag ya existe para evitar errores
+          if git rev-parse "v${{ steps.package_version.outputs.VERSION }}" >/dev/null 2>&1; then
+            echo "El tag v${{ steps.package_version.outputs.VERSION }} ya existe. Saltando..."
+          else
+            git tag "v${{ steps.package_version.outputs.VERSION }}"
+            git push origin "v${{ steps.package_version.outputs.VERSION }}"
+          fi

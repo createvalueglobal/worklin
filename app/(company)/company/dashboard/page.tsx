@@ -1,86 +1,77 @@
-import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/server'
+import { getCompanyProfile } from '@/lib/services/company.service'
+import { getActiveSubscription } from '@/lib/repositories/company.repository'
+import { buildSubscriptionSummary } from '@/lib/services/company.service'
+import CompanyHeader from '@/components/features/company/CompanyHeader'
+import SubscriptionStatusCard from '@/components/features/company/SubscriptionStatusCard'
+import CompanyQuickLinks from '@/components/features/company/CompanyQuickLinks'
+import NoSubscriptionCTA from '@/components/features/company/NoSubscriptionCTA'
+import { PendingPlanBanner } from '@/components/common/PendingPlanBanner'
+import { expireOverdueSubscriptions } from '@/lib/services/subscription.service'
 
-export const metadata: Metadata = {
-  title: 'Panel de empresa — WorkLin',
+export const metadata = {
+  title: 'Dashboard | WorkLin Empresa',
+}
+
+// Saludo dinámico según hora del día
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 13) return 'Buenos días,'
+  if (hour < 20) return 'Buenas tardes,'
+  return 'Buenas noches,'
 }
 
 export default async function CompanyDashboardPage() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet) =>
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          ),
-      },
-    }
-  )
+  const supabase = await createClient()
 
+  // Auth guard
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: company } = await supabase
-    .from('companies')
-    .select('company_name')
-    .eq('user_id', user.id)
-    .single()
+  // Datos de la empresa
+  const company = await getCompanyProfile(supabase, user.id)
+  if (!company) redirect('/onboarding/role')
+
+  await expireOverdueSubscriptions(company.id) // Expirar suscripciones vencidas antes de mostrar el dashboard
+  // Suscripción activa
+  const subscription = await getActiveSubscription(supabase, company.id)
+  const subscriptionSummary = subscription ? buildSubscriptionSummary(subscription) : null
+
+  // Cookie pending_plan (banner post-pago)
+  const cookieStore = await cookies()
+  const hasPendingPlan = cookieStore.has('pending_plan')
+
+  // Features disponibles según suscripción activa
+  const allowsFavorites = subscriptionSummary?.allows_favorites ?? false
+  const allowsHistory = subscriptionSummary?.allows_history ?? false
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#0a0a0f',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        gap: '24px',
-      }}
-    >
-      <span style={{ fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' }}>
-        Work<span style={{ color: '#818cf8' }}>Lin</span>
-      </span>
+    <div className="max-w-4xl mx-auto space-y-6">
 
-      <div
-        style={{
-          backgroundColor: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '20px',
-          padding: '40px 48px',
-          textAlign: 'center',
-          maxWidth: '480px',
-          backdropFilter: 'blur(20px)',
-        }}
-      >
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>
-          ¡Empresa registrada{company?.company_name ? `, ${company.company_name}` : ''}!
-        </h1>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, marginBottom: '24px' }}>
-          Ya puedes empezar a explorar perfiles de profesionales. Elige un plan para desbloquear datos de contacto.
-        </p>
+      {/* Banner post-pago (si existe cookie) */}
+      {hasPendingPlan && <PendingPlanBanner />}
 
-        <div
-          style={{
-            padding: '12px 16px',
-            backgroundColor: 'rgba(99,102,241,0.08)',
-            border: '1px solid rgba(99,102,241,0.2)',
-            borderRadius: '10px',
-            fontSize: '12px',
-            color: 'rgba(255,255,255,0.4)',
-          }}
-        >
-          🚧 El dashboard completo está en construcción. ¡Vuelve pronto!
-        </div>
-      </div>
+      {/* Header empresa */}
+      <CompanyHeader
+        company={company}
+        greeting={getGreeting()}
+      />
+
+      {/* Estado de suscripción o CTA */}
+      {subscriptionSummary ? (
+        <SubscriptionStatusCard subscription={subscriptionSummary} />
+      ) : (
+        <NoSubscriptionCTA />
+      )}
+
+      {/* Accesos rápidos */}
+      <CompanyQuickLinks
+        allowsFavorites={allowsFavorites}
+        allowsHistory={allowsHistory}
+      />
+
     </div>
   )
 }

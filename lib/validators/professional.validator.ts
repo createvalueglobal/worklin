@@ -99,8 +99,78 @@ export const professionalFullSchema = professionalStep1Schema
     }
   )
 
+// ─── Enums ────────────────────────────────────────────────────────────────────
+ 
+export const availabilitySchema = z.enum(['immediate', 'in_days', 'not_available'])
+export const workModeSchema = z.enum(['presential', 'hybrid', 'remote'])
+export const skillLevelSchema = z.number().int().min(1).max(5)
+export const languageLevelSchema = z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native'])
+export const genderSchema = z.enum(['male', 'female'])
+ 
+// ─── Sub-schemas ──────────────────────────────────────────────────────────────
+ 
+export const skillSchema = z.object({
+  skill_name: z.string().min(1).max(100),
+  level: skillLevelSchema,
+  order: z.number().int().min(0),
+})
+ 
+export const languageSchema = z.object({
+  language: z.string().min(1).max(100),
+  level: languageLevelSchema,
+})
+ 
+// ─── Visibility ───────────────────────────────────────────────────────────────
+ 
+export const visibilitySchema = z.object({
+  is_visible: z.boolean(),
+})
+ 
+export type VisibilityInput = z.infer<typeof visibilitySchema>
+ 
+// ─── Update Profile ───────────────────────────────────────────────────────────
+
+export const updateProfileSchema = z.object({
+  // Personal
+  first_name: z.string().min(1).max(100).optional(),
+  last_name: z.string().min(1).max(100).optional(),
+  gender: genderSchema.optional(),
+  birth_date: z.string().optional().nullable(),
+  nationality: z.string().max(100).optional().nullable(),
+  country_id: z.string().uuid().optional().nullable(),
+  province_id: z.string().uuid().optional().nullable(),
+  phone: z.string().max(30).optional().nullable(),
+  photo_url: z.string().url().optional().nullable(),
+ 
+  // Professional
+  main_profession: z.string().min(1).max(150).optional(),
+  years_experience: z.number().int().min(0).max(60).optional(),
+  availability: availabilitySchema.optional(),
+  availability_days: z.number().int().min(1).max(365).optional().nullable(),
+  work_mode: workModeSchema.optional(),
+  last_position: z.string().max(150).optional().nullable(),
+  last_company: z.string().max(150).optional().nullable(),
+ 
+  // Salary
+  salary_min: z.number().min(0).optional().nullable(),
+  salary_max: z.number().min(0).optional().nullable(),
+  salary_currency: z.string().max(10).optional(),
+ 
+  // Extras
+  has_vehicle: z.boolean().optional(),
+  willing_to_travel: z.boolean().optional(),
+  about_me: z.string().max(2000).optional().nullable(),
+  cv_url: z.string().url().optional().nullable(),
+  is_visible: z.boolean().optional(),
+ 
+  // Relations
+  skills: z.array(skillSchema).optional(),
+  languages: z.array(languageSchema).optional(),
+})
+
 export type ProfessionalStep1 = z.infer<typeof professionalStep1Schema>
 export type ProfessionalStep2 = z.infer<typeof professionalStep2Schema>
 export type ProfessionalStep3 = z.infer<typeof professionalStep3Schema>
 export type ProfessionalStep4 = z.infer<typeof professionalStep4Schema>
 export type ProfessionalFull = z.infer<typeof professionalFullSchema>
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
