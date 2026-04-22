@@ -59,7 +59,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
 
   console.log(`[webhook] checkout.session.completed — company=${companyId}, tier=${tierId}`);
 
-  await cancelActiveSubscription(companyId);
+  //await cancelActiveSubscription(companyId);
 
   // Extraer payment_intent ID
   const stripePaymentIntentId =

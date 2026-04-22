@@ -39,7 +39,11 @@ export async function getActiveSubscription(companyId: string) {
  *   - Tiene suscripción activa pero el cupo está agotado
  */
 export async function canCompanySubscribe(companyId: string): Promise<boolean> {
+  // Primero expirar las que hayan vencido
+  await expireOverdueSubscriptions(companyId)
+
   const active = await getActiveSubscription(companyId);
+
   if (!active) return true;
 
   const cupoAgotado = active.profiles_used >= active.snapshot_profile_limit;
@@ -174,4 +178,22 @@ export async function getCompanyIdByUserId(
     .single();
 
   return data?.id ?? null;
+}
+
+/**
+ * 
+ * Expirar caducidades activas si han pasado los 30 días. Se lanza en el dashboard
+ */
+export async function expireOverdueSubscriptions(companyId: string): Promise<void> {
+  const supabase = createAdminClient()
+  
+  await supabase
+    .from('subscriptions')
+    .update({ 
+      status: 'expired',
+      updated_at: new Date().toISOString()
+    })
+    .eq('company_id', companyId)
+    .eq('status', 'active')
+    .lt('expires_at', new Date().toISOString())
 }

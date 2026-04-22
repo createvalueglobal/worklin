@@ -9,6 +9,7 @@ import SubscriptionStatusCard from '@/components/features/company/SubscriptionSt
 import CompanyQuickLinks from '@/components/features/company/CompanyQuickLinks'
 import NoSubscriptionCTA from '@/components/features/company/NoSubscriptionCTA'
 import { PendingPlanBanner } from '@/components/common/PendingPlanBanner'
+import { expireOverdueSubscriptions } from '@/lib/services/subscription.service'
 
 export const metadata = {
   title: 'Dashboard | WorkLin Empresa',
@@ -33,6 +34,7 @@ export default async function CompanyDashboardPage() {
   const company = await getCompanyProfile(supabase, user.id)
   if (!company) redirect('/onboarding/role')
 
+  await expireOverdueSubscriptions(company.id) // Expirar suscripciones vencidas antes de mostrar el dashboard
   // Suscripción activa
   const subscription = await getActiveSubscription(supabase, company.id)
   const subscriptionSummary = subscription ? buildSubscriptionSummary(subscription) : null

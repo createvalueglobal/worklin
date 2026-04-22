@@ -165,7 +165,11 @@ export async function unlockProfile(
   if (newProfilesUsed >= subscription.snapshot_profile_limit) {
     await supabase
       .from('subscriptions')
-      .update({ status: 'completed', completed_at: new Date().toISOString() })
+      .update({ 
+        status: 'completed', 
+        completed_at: new Date().toISOString(), 
+        updated_at: new Date().toISOString() 
+      })
       .eq('id', subscription.id)
   }
 
